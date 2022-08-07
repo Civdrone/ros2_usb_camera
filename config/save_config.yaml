@@ -1,0 +1,7 @@
+usb_camera_driver:
+    ros__parameters: 
+      camera_calibration_file: file://<absolut-path-for-now>
+      image_width: 160
+      image_height: 120
+      fps: 60.0
+      save_path: /home/doronhi/records/temp_record

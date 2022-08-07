@@ -43,13 +43,36 @@ SOFTWARE.
 namespace usb_camera_driver
 {
 
+class ImageTime {
+    public:
+        ImageTime() {};
+        ImageTime(cv::Mat image, std::chrono::steady_clock::time_point time) : image_(image), timestamp_(time)
+        {};
+        bool Save(std::string dir_name);
+
+    private:
+    cv::Mat image_;
+    std::chrono::steady_clock::time_point timestamp_;
+};
+
 class CameraDriver : public rclcpp::Node {
 public:
     explicit CameraDriver(const rclcpp::NodeOptions&);
-    ~CameraDriver() {};
+    ~CameraDriver();
         
 private:
     rclcpp::TimerBase::SharedPtr timer_;
+    std::vector<ImageTime> frames_;
+    size_t idx_write_, idx_read_;
+    std::string save_path_;
+    std::mutex buffer_mu_, cv_wait_for_frame_mu_;
+    std::thread save_thread_;
+    std::condition_variable cv_wait_for_frame_;
+    std::chrono::steady_clock::time_point last_debug_print_;
+    int frames_counter_in_, frames_counter_out_;
+    int frames_counter_out_total;
+
+    bool is_running_;
     cv::Mat frame;
     cv::Mat flipped_frame;
     cv::VideoCapture cap;
@@ -70,6 +93,7 @@ private:
     std::shared_ptr<sensor_msgs::msg::Image> image_msg_;
     
     std::shared_ptr<sensor_msgs::msg::Image> ConvertFrameToMessage(cv::Mat & frame);
+    void SaveToDisk();
     
     void ImageCallback();
     
